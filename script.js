@@ -153,3 +153,51 @@ map.on('locationfound', function(e){
 map.on('locationerror', function(e){
     alert("Localização não encontrada");
 });
+
+// Criar o mapa
+var map = L.map('map').setView([latitude, longitude], zoom);
+
+// Adicionar camada de azulejos OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+}).addTo(map);
+
+// Consulta ao OpenStreetMap para recuperar os restaurantes em uma área específica
+var query = 'node["amenity"="restaurant"](bbox);out;';
+axios.get('https://overpass-api.de/api/interpreter', {
+    params: {
+        data: query
+    }
+})
+.then(function (response) {
+    // Manipular os dados recuperados
+    var restaurants = response.data.elements;
+    // Adicionar marcadores para cada restaurante
+    restaurants.forEach(function (restaurant) {
+        var marker = L.marker([restaurant.lat, restaurant.lon]).addTo(map);
+        // Adicionar pop-up com o nome e comentário do restaurante
+        var popupContent = '<b>' + restaurant.tags.name + '</b><br>' + restaurant.tags.note;
+        marker.bindPopup(popupContent);
+    });
+})
+.catch(function (error) {
+    console.log(error);
+});
+
+// Função para exibir os comentários do restaurante selecionado
+function showComments(restaurantId) {
+    // Aqui você pode recuperar os comentários do servidor para o restaurante selecionado
+    var comments = getCommentsFromServer(restaurantId);
+    // Exibir os comentários em uma nova aba ou modal
+    alert('Comentários do restaurante ' + restaurantId + ':\n' + comments.join('\n'));
+}
+
+// Função de exemplo para recuperar os comentários do servidor
+function getCommentsFromServer(restaurantId) {
+    // Aqui você pode fazer uma solicitação AJAX para recuperar os comentários do servidor
+    // Por enquanto, vamos apenas retornar comentários fictícios
+    if (restaurantId === 'restaurant1') {
+        return ['Comentário 1', 'Comentário 2', 'Comentário 3'];
+    }
+    // Adicione mais casos conforme necessário para cada restaurante
+}

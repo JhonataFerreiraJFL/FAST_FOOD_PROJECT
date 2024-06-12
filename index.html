@@ -20,7 +20,7 @@
         <button onclick="searchRestaurants()">Procurar</button>
         <button onclick="locateUser()">Minha Localização</button> <!-- Adiciona um botão para localizar o usuário -->
         <div id="results">
-            <h2>Restaurantes Encontrados:</h2>
+            <h2>Restaurantes/Lanchonetes Encontrados:</h2>
             <div id="resultsContainer"> <!-- Adiciona um contêiner para a tabela -->
                 <table id="resultsTable">
                     <thead>
@@ -30,6 +30,10 @@
                     </thead>
                     <tbody id="resultsBody">
                         <!-- Resultados vão aparecer aqui -->
+                        <tr>
+                            <td onclick="showComments('restaurant1')">Restaurante 1</td>
+                            <!-- Adicione mais linhas conforme necessário -->
+                        </tr>
                     </tbody>
                 </table>
             </div>
