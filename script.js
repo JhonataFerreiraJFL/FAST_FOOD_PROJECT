@@ -32,7 +32,6 @@ function searchRestaurants() {
         performSearch(location.lat, location.lng, radius, resultsBody);
     }
 
-    // Atualiza a tabela com os dados salvos
     updateTable(true);
 }
 function performSearch(lat, lon, radius, resultsBody) {
@@ -156,21 +155,16 @@ function promptAction(restaurant) {
 }
 
 function openFoodPrompt(restaurant) {
-    // Verifica se já existe um registro para o restaurante no localStorage
     var existingData = localStorage.getItem('foodData');
     var foodArray = existingData ? JSON.parse(existingData) : [];
-
-    // Procura por um registro existente para o restaurante atual
     var existingFood = foodArray.find(function(data) {
         return data.restaurant === restaurant.name;
     });
 
     if (existingFood) {
-        // Se encontrar, pergunta se deseja atualizar os valores
         var update = confirm(`Você já tem um prato (${existingFood.food}) com preço (${existingFood.price} R$) para este restaurante. Deseja atualizar?`);
         
         if (update) {
-            // Atualiza os valores existentes
             var foodName = prompt("Digite o nome da comida:", existingFood.food);
             var foodPrice = prompt("Digite o preço da comida:", existingFood.price);
 
@@ -182,7 +176,6 @@ function openFoodPrompt(restaurant) {
             }
         }
     } else {
-        // Caso contrário, insere um novo registro
         var foodName = prompt("Digite o nome da comida:");
         var foodPrice = prompt("Digite o preço da comida:");
 
@@ -198,8 +191,8 @@ function saveFoodData(restaurantName, foodName, foodPrice) {
         restaurant: restaurantName,
         food: foodName,
         price: foodPrice,
-        lat: null, // Atributo opcional, se necessário
-        lon: null  // Atributo opcional, se necessário
+        lat: null,
+        lon: null 
     };
 
     var existingData = localStorage.getItem('foodData');
@@ -243,7 +236,6 @@ function updateTable(isLocationSearch) {
     
             resultsBody.appendChild(row);
         } else {
-            // Display all saved food data
             foodArray.forEach(function(data) {
                 var row = document.createElement('tr');
     
