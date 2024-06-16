@@ -6,10 +6,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 var baseMarker, circle, userMarker, userLocation;
 
-// Adiciona um marcador para a nova base
-var newBaseCoordinates = [-23.55, -46.64]; // Coordenadas da nova base
-var newBaseMarker = L.marker(newBaseCoordinates).addTo(map).bindPopup('Nova Base'); // Adiciona um marcador para a nova base
-
 function searchRestaurants() {
     var location = userLocation || document.getElementById('location').value; // Usa userLocation se disponível, caso contrário, usa o valor do campo de texto
     var radius = document.getElementById('radius').value;
@@ -68,6 +64,7 @@ function performSearch(lat, lon, radius, resultsBody) {
 
             elements.forEach(function (element) {
                 var restaurant = {
+                    id: element.id, // Store the id for reference
                     name: element.tags.name || 'Restaurante/Café sem nome',
                     lat: element.lat,
                     lon: element.lon
@@ -83,7 +80,14 @@ function performSearch(lat, lon, radius, resultsBody) {
                 foundRestaurants.forEach(function (restaurant) {
                     var row = document.createElement('tr');
                     var cell = document.createElement('td');
-                    cell.innerText = restaurant.name;
+                    var link = document.createElement('a');
+                    link.href = "#";
+                    link.innerText = restaurant.name;
+                    link.onclick = function() {
+                        openFoodPrompt(restaurant);
+                        return false;
+                    };
+                    cell.appendChild(link);
                     row.appendChild(cell);
                     resultsBody.appendChild(row);
                 });
@@ -146,3 +150,43 @@ map.on('locationfound', function(e) {
 map.on('locationerror', function() {
     alert("Localização não encontrada");
 });
+
+function openFoodPrompt(restaurant) {
+    var foodName = prompt("Digite o nome da comida:");
+    var foodPrice = prompt("Digite o preço da comida:");
+
+    if (foodName && foodPrice) {
+        saveFoodData(restaurant.name, foodName, foodPrice);
+    }
+}
+
+function saveFoodData(restaurantName, foodName, foodPrice) {
+    var foodData = {
+        restaurant: restaurantName,
+        food: foodName,
+        price: foodPrice
+    };
+
+    var existingData = localStorage.getItem('foodData');
+    var foodArray = existingData ? JSON.parse(existingData) : [];
+    foodArray.push(foodData);
+    localStorage.setItem('foodData', JSON.stringify(foodArray));
+
+    alert(`Dados salvos:\nRestaurante: ${restaurantName}\nComida: ${foodName}\nPreço: ${foodPrice}`);
+}
+
+// Função para exibir os dados salvos (opcional)
+function displaySavedData() {
+    var existingData = localStorage.getItem('foodData');
+    if (existingData) {
+        var foodArray = JSON.parse(existingData);
+        foodArray.forEach(function(data) {
+            console.log(`Restaurante: ${data.restaurant}, Comida: ${data.food}, Preço: ${data.price}`);
+        });
+    } else {
+        console.log("Nenhum dado salvo.");
+    }
+}
+
+// Exemplo de uso para exibir os dados salvos
+displaySavedData();

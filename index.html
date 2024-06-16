@@ -40,11 +40,22 @@
         </div>
     </div>
 
+    <!-- Formulário de entrada para nome da comida e preço -->
+    <div id="foodForm" style="display: none;">
+        <label for="foodName">Nome da Comida:</label>
+        <input type="text" id="foodName">
+        <label for="foodPrice">Preço:</label>
+        <input type="number" id="foodPrice">
+        <button onclick="addFood()">Adicionar Comida</button>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
 
     <script>
+        var currentRestaurant; // Variável para armazenar o restaurante atual
+
         function showComments(restaurantId) {
             var comments = getCommentsFromServer(restaurantId);
             alert('Comentários do restaurante ' + restaurantId + ':\n' + comments.join('\n'));
@@ -61,11 +72,22 @@
             resultsTable.addEventListener('click', function(event) {
                 var target = event.target;
                 if (target.tagName === 'TD') {
-                    var restaurantId = target.innerText;
-                    showComments(restaurantId);
+                    currentRestaurant = target.innerText;
+                    showFoodForm();
                 }
             });
         });
+
+        function showFoodForm() {
+            document.getElementById('foodForm').style.display = 'block';
+        }
+
+        function addFood() {
+            var foodName = document.getElementById('foodName').value;
+            var foodPrice = document.getElementById('foodPrice').value;
+            alert('Comida adicionada para ' + currentRestaurant + ': ' + foodName + ' - ' + foodPrice);
+            document.getElementById('foodForm').style.display = 'none';
+        }
     </script>
 </body>
 </html>
