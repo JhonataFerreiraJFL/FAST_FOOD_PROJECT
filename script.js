@@ -1,19 +1,18 @@
-var map = L.map('map').setView([-23.5505, -46.6333], 13); // São Paulo
+var map = L.map('map').setView([-22.9116, -43.2303], 13); // UERJ
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
 }).addTo(map);
 
-var baseMarker, circle, userMarker, userLocation;
+var baseMarker, circle, userMarker, userLocation, routeControl;
 
 function searchRestaurants() {
-    var location = userLocation || document.getElementById('location').value; // Usa userLocation se disponível, caso contrário, usa o valor do campo de texto
+    var location = userLocation || document.getElementById('location').value;
     var radius = document.getElementById('radius').value;
     var resultsBody = document.getElementById('resultsBody');
     resultsBody.innerHTML = '';
 
     if (typeof location === 'string') {
-        // Use a geocoding API to get latitude and longitude
         var geocodeURL = `https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`;
 
         axios.get(geocodeURL)
@@ -37,7 +36,6 @@ function searchRestaurants() {
 function performSearch(lat, lon, radius, resultsBody) {
     map.setView([lat, lon], 15);
 
-    // Clear existing markers and circle
     if (baseMarker) {
         map.removeLayer(baseMarker);
     }
@@ -45,7 +43,6 @@ function performSearch(lat, lon, radius, resultsBody) {
         map.removeLayer(circle);
     }
 
-    // Add base marker and circle for search radius
     baseMarker = L.marker([lat, lon]).addTo(map).bindPopup('Local Base').openPopup();
     circle = L.circle([lat, lon], {
         color: 'blue',
@@ -54,7 +51,6 @@ function performSearch(lat, lon, radius, resultsBody) {
         radius: radius * 1000
     }).addTo(map);
 
-    // Fetch restaurants and cafes from Overpass API
     var overpassURL = `https://overpass-api.de/api/interpreter?data=[out:json];(node["amenity"="restaurant"](around:${radius * 1000},${lat},${lon});node["amenity"="cafe"](around:${radius * 1000},${lat},${lon}););out;`;
 
     axios.get(overpassURL)
@@ -64,7 +60,7 @@ function performSearch(lat, lon, radius, resultsBody) {
 
             elements.forEach(function (element) {
                 var restaurant = {
-                    id: element.id, // Store the id for reference
+                    id: element.id,
                     name: element.tags.name || 'Restaurante/Café sem nome',
                     lat: element.lat,
                     lon: element.lon
@@ -75,7 +71,6 @@ function performSearch(lat, lon, radius, resultsBody) {
                     .bindPopup(restaurant.name);
             });
 
-            // Display found restaurants
             if (foundRestaurants.length > 0) {
                 foundRestaurants.forEach(function (restaurant) {
                     var row = document.createElement('tr');
@@ -84,18 +79,17 @@ function performSearch(lat, lon, radius, resultsBody) {
                     link.href = "#";
                     link.innerText = restaurant.name;
                     link.onclick = function() {
-                        openFoodPrompt(restaurant);
+                        promptAction(restaurant);
                         return false;
                     };
                     cell.appendChild(link);
                     row.appendChild(cell);
 
-                    // Add empty cells for food and price
                     var foodCell = document.createElement('td');
-                    foodCell.innerText = 'Nenhum Prato';
+                    foodCell.innerText = 'Nenhum valor';
                     row.appendChild(foodCell);
                     var priceCell = document.createElement('td');
-                    priceCell.innerText = 'Nenhum Preço';
+                    priceCell.innerText = 'Nenhum valor';
                     row.appendChild(priceCell);
 
                     resultsBody.appendChild(row);
@@ -112,6 +106,94 @@ function performSearch(lat, lon, radius, resultsBody) {
         .catch(function (error) {
             console.log(error);
         });
+}
+
+function promptAction(restaurant) {
+    var action = confirm("Deseja traçar o caminho até este restaurante?");
+
+    if (action) {
+        drawRoute(restaurant.lat, restaurant.lon);
+    } else {
+        openFoodPrompt(restaurant) 
+    }
+}
+
+function openFoodPrompt(restaurant) {
+    var foodName = prompt("Digite o nome da comida:");
+    var foodPrice = prompt("Digite o preço da comida:");
+
+    if (foodName && foodPrice) {
+        saveFoodData(restaurant.name, foodName, foodPrice);
+        updateTable();
+    }
+}
+
+function saveFoodData(restaurantName, foodName, foodPrice) {
+    var foodData = {
+        restaurant: restaurantName,
+        food: foodName,
+        price: foodPrice
+    };
+
+    var existingData = localStorage.getItem('foodData');
+    var foodArray = existingData ? JSON.parse(existingData) : [];
+    foodArray.push(foodData);
+    localStorage.setItem('foodData', JSON.stringify(foodArray));
+}
+
+function updateTable() {
+    var resultsBody = document.getElementById('resultsBody');
+    resultsBody.innerHTML = '';
+    
+    var existingData = localStorage.getItem('foodData');
+    if (existingData) {
+        var foodArray = JSON.parse(existingData);
+        foodArray.forEach(function(data) {
+            var row = document.createElement('tr');
+
+            var restaurantCell = document.createElement('td');
+            var link = document.createElement('a');
+            link.href = "#";
+            link.innerText = data.restaurant;
+            link.onclick = function() {
+                drawRoute(data.lat, data.lon);
+                return false;
+            };
+            restaurantCell.appendChild(link);
+            row.appendChild(restaurantCell);
+
+            var foodCell = document.createElement('td');
+            foodCell.innerText = data.food;
+            row.appendChild(foodCell);
+
+            var priceCell = document.createElement('td');
+            priceCell.innerText = data.price;
+            row.appendChild(priceCell);
+
+            resultsBody.appendChild(row);
+        });
+    } else {
+        var row = document.createElement('tr');
+        var cell = document.createElement('td');
+        cell.colSpan = 3;
+        cell.innerText = 'Nenhum valor.';
+        row.appendChild(cell);
+        resultsBody.appendChild(row);
+    }
+}
+
+function drawRoute(lat, lon) {
+    if (routeControl) {
+        map.removeControl(routeControl);
+    }
+
+    routeControl = L.Routing.control({
+        waypoints: [
+            L.latLng(userLocation.lat, userLocation.lng),
+            L.latLng(lat, lon)
+        ],
+        routeWhileDragging: true
+    }).addTo(map);
 }
 
 function sortTable() {
@@ -153,69 +235,13 @@ map.on('locationfound', function(e) {
 
     var locationInput = document.getElementById('location');
     locationInput.value = `${e.latlng.lat},${e.latlng.lng}`;
-    userLocation = e.latlng; // Store user location
+    userLocation = e.latlng;
 });
 
 map.on('locationerror', function() {
     alert("Localização não encontrada");
 });
 
-function openFoodPrompt(restaurant) {
-    var foodName = prompt("Digite o nome da comida:");
-    var foodPrice = prompt("Digite o preço da comida:");
-
-    if (foodName && foodPrice) {
-        saveFoodData(restaurant.name, foodName, foodPrice);
-        updateTable();
-    }
-}
-
-function saveFoodData(restaurantName, foodName, foodPrice) {
-    var foodData = {
-        restaurant: restaurantName,
-        food: foodName,
-        price: foodPrice
-    };
-
-    var existingData = localStorage.getItem('foodData');
-    var foodArray = existingData ? JSON.parse(existingData) : [];
-    foodArray.push(foodData);
-    localStorage.setItem('foodData', JSON.stringify(foodArray));
-}
-
-function updateTable() {
-    var resultsBody = document.getElementById('resultsBody');
-    resultsBody.innerHTML = '';
-    
-    var existingData = localStorage.getItem('foodData');
-    if (existingData) {
-        var foodArray = JSON.parse(existingData);
-        foodArray.forEach(function(data) {
-            var row = document.createElement('tr');
-
-            var restaurantCell = document.createElement('td');
-            restaurantCell.innerText = data.restaurant;
-            row.appendChild(restaurantCell);
-
-            var foodCell = document.createElement('td');
-            foodCell.innerText = data.food;
-            row.appendChild(foodCell);
-
-            var priceCell = document.createElement('td');
-            priceCell.innerText = data.price;
-            row.appendChild(priceCell);
-
-            resultsBody.appendChild(row);
-        });
-    } else {
-        var row = document.createElement('tr');
-        var cell = document.createElement('td');
-        cell.colSpan = 3;
-        cell.innerText = 'Nenhum Dado';
-        row.appendChild(cell);
-        resultsBody.appendChild(row);
-    }
-}
-
-// Inicializa a tabela com os dados salvos ao carregar a página
-updateTable();
+document.addEventListener("DOMContentLoaded", function() {
+    updateTable();
+});

@@ -6,6 +6,9 @@
     <title>Procura Por Comida Barata</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 </head>
 <body>
     <div id="map"></div>
@@ -14,7 +17,7 @@
             <h1>CHEAP FOOD MAP</h1>
         </div>
         <label for="location">Local:</label>
-        <input type="text" id="location" value="São Paulo, Brasil">
+        <input type="text" id="location" value="UERJ">
         <label for="radius">Raio (km):</label>
         <input type="number" id="radius" value="2">
         <button onclick="searchRestaurants()">Procurar</button>
@@ -31,7 +34,6 @@
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
-                        <!-- Resultados vão aparecer aqui -->
                     </tbody>
                 </table>
             </div>
@@ -42,8 +44,6 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
