@@ -31,8 +31,10 @@ function searchRestaurants() {
     } else {
         performSearch(location.lat, location.lng, radius, resultsBody);
     }
-}
 
+    // Atualiza a tabela com os dados salvos
+    updateTable(true);
+}
 function performSearch(lat, lon, radius, resultsBody) {
     map.setView([lat, lon], 15);
 
@@ -65,14 +67,29 @@ function performSearch(lat, lon, radius, resultsBody) {
                     lat: element.lat,
                     lon: element.lon
                 };
-                foundRestaurants.push(restaurant);
+
+                // Verificar se o restaurante já está salvo no localStorage
+                var existingData = localStorage.getItem('foodData');
+                var foodArray = existingData ? JSON.parse(existingData) : [];
+                var isSaved = foodArray.some(function(data) {
+                    return data.restaurant === restaurant.name;
+                });
+
+                foundRestaurants.push({
+                    restaurant: restaurant,
+                    isSaved: isSaved
+                });
+
                 L.marker([restaurant.lat, restaurant.lon])
                     .addTo(map)
                     .bindPopup(restaurant.name);
             });
 
             if (foundRestaurants.length > 0) {
-                foundRestaurants.forEach(function (restaurant) {
+                foundRestaurants.forEach(function (foundRestaurant) {
+                    var restaurant = foundRestaurant.restaurant;
+                    var isSaved = foundRestaurant.isSaved;
+
                     var row = document.createElement('tr');
                     var cell = document.createElement('td');
                     var link = document.createElement('a');
@@ -103,7 +120,7 @@ function performSearch(lat, lon, radius, resultsBody) {
                     optionsCell.appendChild(routeButton);
 
                     var foodButton = document.createElement('button');
-                    foodButton.textContent = "Colocar Valor no Prato";
+                    foodButton.textContent = isSaved ? "Atualizar Prato" : "Colocar Valor no Prato";
                     foodButton.onclick = function() {
                         openFoodPrompt(restaurant);
                     };
@@ -127,6 +144,7 @@ function performSearch(lat, lon, radius, resultsBody) {
         });
 }
 
+
 function promptAction(restaurant) {
     var action = confirm("Deseja traçar o caminho até este restaurante?");
 
@@ -138,12 +156,40 @@ function promptAction(restaurant) {
 }
 
 function openFoodPrompt(restaurant) {
-    var foodName = prompt("Digite o nome da comida:");
-    var foodPrice = prompt("Digite o preço da comida:");
+    // Verifica se já existe um registro para o restaurante no localStorage
+    var existingData = localStorage.getItem('foodData');
+    var foodArray = existingData ? JSON.parse(existingData) : [];
 
-    if (foodName && foodPrice) {
-        saveFoodData(restaurant.name, foodName, foodPrice);
-        updateTable();
+    // Procura por um registro existente para o restaurante atual
+    var existingFood = foodArray.find(function(data) {
+        return data.restaurant === restaurant.name;
+    });
+
+    if (existingFood) {
+        // Se encontrar, pergunta se deseja atualizar os valores
+        var update = confirm(`Você já tem um prato (${existingFood.food}) com preço (${existingFood.price} R$) para este restaurante. Deseja atualizar?`);
+        
+        if (update) {
+            // Atualiza os valores existentes
+            var foodName = prompt("Digite o nome da comida:", existingFood.food);
+            var foodPrice = prompt("Digite o preço da comida:", existingFood.price);
+
+            if (foodName && foodPrice) {
+                existingFood.food = foodName;
+                existingFood.price = foodPrice;
+                localStorage.setItem('foodData', JSON.stringify(foodArray));
+                updateTable();
+            }
+        }
+    } else {
+        // Caso contrário, insere um novo registro
+        var foodName = prompt("Digite o nome da comida:");
+        var foodPrice = prompt("Digite o preço da comida:");
+
+        if (foodName && foodPrice) {
+            saveFoodData(restaurant.name, foodName, foodPrice);
+            updateTable();
+        }
     }
 }
 
@@ -151,7 +197,9 @@ function saveFoodData(restaurantName, foodName, foodPrice) {
     var foodData = {
         restaurant: restaurantName,
         food: foodName,
-        price: foodPrice
+        price: foodPrice,
+        lat: null, // Atributo opcional, se necessário
+        lon: null  // Atributo opcional, se necessário
     };
 
     var existingData = localStorage.getItem('foodData');
@@ -160,37 +208,67 @@ function saveFoodData(restaurantName, foodName, foodPrice) {
     localStorage.setItem('foodData', JSON.stringify(foodArray));
 }
 
-function updateTable() {
+function updateTable(isLocationSearch) {
     var resultsBody = document.getElementById('resultsBody');
     resultsBody.innerHTML = '';
     
     var existingData = localStorage.getItem('foodData');
     if (existingData) {
         var foodArray = JSON.parse(existingData);
-        foodArray.forEach(function(data) {
-            var row = document.createElement('tr');
 
+        if (isLocationSearch) {
+            // Get the last item in the array
+            var lastFood = foodArray[foodArray.length - 1];
+            
+            var row = document.createElement('tr');
+    
             var restaurantCell = document.createElement('td');
             var link = document.createElement('a');
             link.href = "#";
-            link.innerText = data.restaurant;
+            link.innerText = lastFood.restaurant;
             link.onclick = function() {
-                drawRoute(data.lat, data.lon);
+                drawRoute(lastFood.lat, lastFood.lon);
                 return false;
             };
             restaurantCell.appendChild(link);
             row.appendChild(restaurantCell);
-
+    
             var foodCell = document.createElement('td');
-            foodCell.innerText = data.food;
+            foodCell.innerText = lastFood.food;
             row.appendChild(foodCell);
-
+    
             var priceCell = document.createElement('td');
-            priceCell.innerText = data.price;
+            priceCell.innerText = lastFood.price;
             row.appendChild(priceCell);
-
+    
             resultsBody.appendChild(row);
-        });
+        } else {
+            // Display all saved food data
+            foodArray.forEach(function(data) {
+                var row = document.createElement('tr');
+    
+                var restaurantCell = document.createElement('td');
+                var link = document.createElement('a');
+                link.href = "#";
+                link.innerText = data.restaurant;
+                link.onclick = function() {
+                    drawRoute(data.lat, data.lon);
+                    return false;
+                };
+                restaurantCell.appendChild(link);
+                row.appendChild(restaurantCell);
+    
+                var foodCell = document.createElement('td');
+                foodCell.innerText = data.food;
+                row.appendChild(foodCell);
+    
+                var priceCell = document.createElement('td');
+                priceCell.innerText = data.price;
+                row.appendChild(priceCell);
+    
+                resultsBody.appendChild(row);
+            });
+        }
     } else {
         var row = document.createElement('tr');
         var cell = document.createElement('td');
@@ -199,6 +277,20 @@ function updateTable() {
         row.appendChild(cell);
         resultsBody.appendChild(row);
     }
+}
+
+function drawRoute(lat, lon) {
+    if (routeControl) {
+        map.removeControl(routeControl);
+    }
+
+    routeControl = L.Routing.control({
+        waypoints: [
+            L.latLng(userLocation.lat, userLocation.lng),
+            L.latLng(lat, lon)
+        ],
+        routeWhileDragging: true
+    }).addTo(map);
 }
 
 function drawRoute(lat, lon) {
@@ -241,6 +333,21 @@ function sortTable() {
 function locateUser() {
     map.locate({setView: true, maxZoom: 16});
 }
+
+map.on('locationfound', function(e) {
+    var radius = e.accuracy / 2;
+
+    if (userMarker) {
+        map.removeLayer(userMarker);
+    }
+
+    userMarker = L.marker(e.latlng).addTo(map).bindPopup('Sua localização').openPopup();
+    L.circle(e.latlng, radius).addTo(map);
+
+    var locationInput = document.getElementById('location');
+    locationInput.value = `${e.latlng.lat},${e.latlng.lng}`;
+    userLocation = e.latlng;
+});
 
 map.on('locationfound', function(e) {
     var radius = e.accuracy / 2;
