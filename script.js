@@ -89,12 +89,21 @@ function performSearch(lat, lon, radius, resultsBody) {
                     };
                     cell.appendChild(link);
                     row.appendChild(cell);
+
+                    // Add empty cells for food and price
+                    var foodCell = document.createElement('td');
+                    foodCell.innerText = 'Nenhum Prato';
+                    row.appendChild(foodCell);
+                    var priceCell = document.createElement('td');
+                    priceCell.innerText = 'Nenhum Preço';
+                    row.appendChild(priceCell);
+
                     resultsBody.appendChild(row);
                 });
             } else {
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
-                cell.colSpan = 1;
+                cell.colSpan = 3;
                 cell.innerText = 'Nenhum restaurante encontrado nesta área.';
                 row.appendChild(cell);
                 resultsBody.appendChild(row);
@@ -157,6 +166,7 @@ function openFoodPrompt(restaurant) {
 
     if (foodName && foodPrice) {
         saveFoodData(restaurant.name, foodName, foodPrice);
+        updateTable();
     }
 }
 
@@ -171,22 +181,41 @@ function saveFoodData(restaurantName, foodName, foodPrice) {
     var foodArray = existingData ? JSON.parse(existingData) : [];
     foodArray.push(foodData);
     localStorage.setItem('foodData', JSON.stringify(foodArray));
-
-    alert(`Dados salvos:\nRestaurante: ${restaurantName}\nComida: ${foodName}\nPreço: ${foodPrice}`);
 }
 
-// Função para exibir os dados salvos (opcional)
-function displaySavedData() {
+function updateTable() {
+    var resultsBody = document.getElementById('resultsBody');
+    resultsBody.innerHTML = '';
+    
     var existingData = localStorage.getItem('foodData');
     if (existingData) {
         var foodArray = JSON.parse(existingData);
         foodArray.forEach(function(data) {
-            console.log(`Restaurante: ${data.restaurant}, Comida: ${data.food}, Preço: ${data.price}`);
+            var row = document.createElement('tr');
+
+            var restaurantCell = document.createElement('td');
+            restaurantCell.innerText = data.restaurant;
+            row.appendChild(restaurantCell);
+
+            var foodCell = document.createElement('td');
+            foodCell.innerText = data.food;
+            row.appendChild(foodCell);
+
+            var priceCell = document.createElement('td');
+            priceCell.innerText = data.price;
+            row.appendChild(priceCell);
+
+            resultsBody.appendChild(row);
         });
     } else {
-        console.log("Nenhum dado salvo.");
+        var row = document.createElement('tr');
+        var cell = document.createElement('td');
+        cell.colSpan = 3;
+        cell.innerText = 'Nenhum Dado';
+        row.appendChild(cell);
+        resultsBody.appendChild(row);
     }
 }
 
-// Exemplo de uso para exibir os dados salvos
-displaySavedData();
+// Inicializa a tabela com os dados salvos ao carregar a página
+updateTable();
