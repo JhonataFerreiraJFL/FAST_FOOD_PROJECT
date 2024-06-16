@@ -88,16 +88,35 @@ function performSearch(lat, lon, radius, resultsBody) {
                     var foodCell = document.createElement('td');
                     foodCell.innerText = 'Nenhum valor';
                     row.appendChild(foodCell);
+
                     var priceCell = document.createElement('td');
                     priceCell.innerText = 'Nenhum valor';
                     row.appendChild(priceCell);
+
+                    var optionsCell = document.createElement('td');
+
+                    var routeButton = document.createElement('button');
+                    routeButton.textContent = "Traçar Rota";
+                    routeButton.onclick = function() {
+                        drawRoute(restaurant.lat, restaurant.lon);
+                    };
+                    optionsCell.appendChild(routeButton);
+
+                    var foodButton = document.createElement('button');
+                    foodButton.textContent = "Colocar Valor no Prato";
+                    foodButton.onclick = function() {
+                        openFoodPrompt(restaurant);
+                    };
+                    optionsCell.appendChild(foodButton);
+
+                    row.appendChild(optionsCell);
 
                     resultsBody.appendChild(row);
                 });
             } else {
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
-                cell.colSpan = 3;
+                cell.colSpan = 4;
                 cell.innerText = 'Nenhum restaurante encontrado nesta área.';
                 row.appendChild(cell);
                 resultsBody.appendChild(row);
@@ -114,7 +133,7 @@ function promptAction(restaurant) {
     if (action) {
         drawRoute(restaurant.lat, restaurant.lon);
     } else {
-        openFoodPrompt(restaurant) 
+        openFoodPrompt(restaurant);
     }
 }
 
