@@ -34,6 +34,7 @@ function searchRestaurants() {
 
     updateTable(true);
 }
+
 function performSearch(lat, lon, radius, resultsBody) {
     map.setView([lat, lon], 15);
 
@@ -57,7 +58,7 @@ function performSearch(lat, lon, radius, resultsBody) {
     axios.get(overpassURL)
         .then(function (response) {
             var elements = response.data.elements;
-            var foundRestaurants = [];
+            var uniqueRestaurants = {};
 
             elements.forEach(function (element) {
                 var restaurant = {
@@ -67,69 +68,85 @@ function performSearch(lat, lon, radius, resultsBody) {
                     lon: element.lon
                 };
 
-                // Verificar se o restaurante já está salvo no localStorage
                 var existingData = localStorage.getItem('foodData');
                 var foodArray = existingData ? JSON.parse(existingData) : [];
-                var isSaved = foodArray.some(function(data) {
+                var existingFood = foodArray.find(function(data) {
                     return data.restaurant === restaurant.name;
                 });
 
-                foundRestaurants.push({
-                    restaurant: restaurant,
-                    isSaved: isSaved
-                });
+                if (!uniqueRestaurants[restaurant.name]) {
+                    uniqueRestaurants[restaurant.name] = {
+                        restaurant: restaurant,
+                        existingFood: existingFood
+                    };
 
-                L.marker([restaurant.lat, restaurant.lon])
-                    .addTo(map)
-                    .bindPopup(restaurant.name);
+                    L.marker([restaurant.lat, restaurant.lon])
+                        .addTo(map)
+                        .bindPopup(restaurant.name);
+                }
             });
 
-            if (foundRestaurants.length > 0) {
-                foundRestaurants.forEach(function (foundRestaurant) {
-                    var restaurant = foundRestaurant.restaurant;
-                    var isSaved = foundRestaurant.isSaved;
+            Object.values(uniqueRestaurants).forEach(function(foundRestaurant) {
+                var restaurant = foundRestaurant.restaurant;
+                var existingFood = foundRestaurant.existingFood;
 
-                    var row = document.createElement('tr');
-                    var cell = document.createElement('td');
-                    var link = document.createElement('a');
-                    link.href = "#";
-                    link.innerText = restaurant.name;
-                    link.onclick = function() {
-                        promptAction(restaurant);
-                        return false;
-                    };
-                    cell.appendChild(link);
-                    row.appendChild(cell);
+                var row = document.createElement('tr');
+                var cell = document.createElement('td');
+                var link = document.createElement('a');
+                link.href = "#";
+                link.innerText = restaurant.name;
+                link.onclick = function() {
+                    promptAction(restaurant);
+                    return false;
+                };
+                cell.appendChild(link);
+                row.appendChild(cell);
 
-                    var foodCell = document.createElement('td');
+                var foodCell = document.createElement('td');
+                if (existingFood) {
+                    foodCell.innerText = existingFood.food;
+                } else {
                     foodCell.innerText = 'Nenhum valor';
-                    row.appendChild(foodCell);
+                }
+                row.appendChild(foodCell);
 
-                    var priceCell = document.createElement('td');
+                var priceCell = document.createElement('td');
+                if (existingFood) {
+                    priceCell.innerText = existingFood.price;
+                } else {
                     priceCell.innerText = 'Nenhum valor';
-                    row.appendChild(priceCell);
+                }
+                row.appendChild(priceCell);
 
-                    var optionsCell = document.createElement('td');
+                var optionsCell = document.createElement('td');
 
-                    var routeButton = document.createElement('button');
-                    routeButton.textContent = "Traçar Rota";
-                    routeButton.onclick = function() {
-                        drawRoute(restaurant.lat, restaurant.lon);
+                var routeButton = document.createElement('button');
+                routeButton.textContent = "Traçar Rota";
+                routeButton.onclick = function() {
+                    drawRoute(restaurant.lat, restaurant.lon);
+                };
+                optionsCell.appendChild(routeButton);
+
+                var foodButton = document.createElement('button');
+                if (existingFood) {
+                    foodButton.textContent = "Atualizar Prato";
+                    foodButton.onclick = function() {
+                        openFoodPrompt(restaurant, existingFood);
                     };
-                    optionsCell.appendChild(routeButton);
-
-                    var foodButton = document.createElement('button');
-                    foodButton.textContent = isSaved ? "Atualizar Prato" : "Colocar Valor no Prato";
+                } else {
+                    foodButton.textContent = "Colocar Valor no Prato";
                     foodButton.onclick = function() {
                         openFoodPrompt(restaurant);
                     };
-                    optionsCell.appendChild(foodButton);
+                }
+                optionsCell.appendChild(foodButton);
 
-                    row.appendChild(optionsCell);
+                row.appendChild(optionsCell);
 
-                    resultsBody.appendChild(row);
-                });
-            } else {
+                resultsBody.appendChild(row);
+            });
+
+            if (Object.keys(uniqueRestaurants).length === 0) {
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
                 cell.colSpan = 4;
@@ -143,7 +160,6 @@ function performSearch(lat, lon, radius, resultsBody) {
         });
 }
 
-
 function promptAction(restaurant) {
     var action = confirm("Deseja traçar o caminho até este restaurante?");
 
@@ -154,13 +170,7 @@ function promptAction(restaurant) {
     }
 }
 
-function openFoodPrompt(restaurant) {
-    var existingData = localStorage.getItem('foodData');
-    var foodArray = existingData ? JSON.parse(existingData) : [];
-    var existingFood = foodArray.find(function(data) {
-        return data.restaurant === restaurant.name;
-    });
-
+function openFoodPrompt(restaurant, existingFood) {
     if (existingFood) {
         var update = confirm(`Você já tem um prato (${existingFood.food}) com preço (${existingFood.price} R$) para este restaurante. Deseja atualizar?`);
         
@@ -171,7 +181,17 @@ function openFoodPrompt(restaurant) {
             if (foodName && foodPrice) {
                 existingFood.food = foodName;
                 existingFood.price = foodPrice;
+
+                var existingData = localStorage.getItem('foodData');
+                var foodArray = existingData ? JSON.parse(existingData) : [];
+                foodArray.forEach(function(item) {
+                    if (item.restaurant === restaurant.name) {
+                        item.food = foodName;
+                        item.price = foodPrice;
+                    }
+                });
                 localStorage.setItem('foodData', JSON.stringify(foodArray));
+
                 updateTable();
             }
         }
@@ -190,9 +210,7 @@ function saveFoodData(restaurantName, foodName, foodPrice) {
     var foodData = {
         restaurant: restaurantName,
         food: foodName,
-        price: foodPrice,
-        lat: null,
-        lon: null 
+        price: foodPrice
     };
 
     var existingData = localStorage.getItem('foodData');
@@ -210,7 +228,6 @@ function updateTable(isLocationSearch) {
         var foodArray = JSON.parse(existingData);
 
         if (isLocationSearch) {
-            // Get the last item in the array
             var lastFood = foodArray[foodArray.length - 1];
             
             var row = document.createElement('tr');
