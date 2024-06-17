@@ -31,3 +31,6 @@ Este projeto foi desenvolvido para a disciplina de Engenharia de Software C, do 
 Este projeto é licenciado sob a Licença MIT, que permite tanto o uso educativo quanto o comercial:
 - **Uso educativo**: Você pode modificar e distribuir cópias deste software para fins educativos.
 - **Uso comercial**: Você pode modificar e distribuir cópias deste software para fins comerciais.
+
+## Página Inicial
+![Página Inicial](pagina.png)
