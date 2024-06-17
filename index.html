@@ -6,6 +6,9 @@
     <title>Procura Por Comida Barata</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 </head>
 <body>
     <div id="map"></div>
@@ -14,26 +17,25 @@
             <h1>CHEAP FOOD MAP</h1>
         </div>
         <label for="location">Local:</label>
-        <input type="text" id="location" value="São Paulo, Brasil">
+        <input type="text" id="location" value="UERJ">
         <label for="radius">Raio (km):</label>
         <input type="number" id="radius" value="2">
         <button onclick="searchRestaurants()">Procurar</button>
-        <button onclick="locateUser()">Minha Localização</button> <!-- Adiciona um botão para localizar o usuário -->
+        <button onclick="locateUser()">Minha Localização</button>
         <div id="results">
             <h2>Restaurantes/Lanchonetes Encontrados:</h2>
-            <div id="resultsContainer"> <!-- Adiciona um contêiner para a tabela -->
+            <div id="resultsContainer">
                 <table id="resultsTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable()">Nome</th>
+                            <th onclick="sortTable()">Nome do Restaurante</th>
+                            <th>Prato</th>
+                            <th>Preço (R$)</th>
+                            <th>Opções</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
-                        <!-- Resultados vão aparecer aqui -->
-                        <tr>
-                            <td onclick="showComments('restaurant1')">Restaurante 1</td>
-                            <!-- Adicione mais linhas conforme necessário -->
-                        </tr>
+                        <!-- Os resultados serão preenchidos dinamicamente aqui -->
                     </tbody>
                 </table>
             </div>
@@ -44,8 +46,6 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
