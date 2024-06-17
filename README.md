@@ -1,17 +1,17 @@
-Entendi! Aqui está o README.md atualizado, considerando que o projeto utiliza HTML, CSS, JavaScript com as ferramentas Leaflet e OpenStreetMap:
+Entendi! Aqui está o README.md atualizado com uma licença que permite tanto o uso educativo quanto o comercial do projeto:
 
 ---
 
 # GeoService
 
 ## Descrição
-Este projeto foi elaborado para a disciplina de Engenharia de Software C, do curso de Engenharia de Computação da UERJ. O objetivo principal é desenvolver um sistema básico para fins de geolocalização, geosserviço e colaborativo para a comunidade, utilizando HTML, CSS, JavaScript com as ferramentas do Leaflet e OpenStreetMap.
+Este projeto foi desenvolvido para a disciplina de Engenharia de Software C, do curso de Engenharia de Computação da UERJ. O objetivo principal é criar uma plataforma para geolocalização, geosserviço e colaboração comunitária. Utiliza HTML, CSS, JavaScript junto das ferramentas Leaflet e OpenStreetMap para proporcionar uma busca por comida barata próxima à localização do usuário, permitindo que a comunidade compartilhe informações sobre os pratos mais baratos disponíveis nos restaurantes próximos.
 
 ## Funcionalidades
-- Geolocalização de usuários e pontos de interesse
-- Compartilhamento de informações geográficas entre usuários
-- Recomendações de locais com base em preferências pessoais
-- Interação social baseada em localização
+- Geolocalização de usuários e restaurantes
+- Busca por comida barata baseada na localização do usuário
+- Compartilhamento de informações sobre pratos mais baratos
+- Interação social entre usuários através de recomendações e avaliações
 
 ## Instalação
 1. **Pré-requisitos**: Certifique-se de ter instalado um navegador web compatível.
@@ -20,7 +20,7 @@ Este projeto foi elaborado para a disciplina de Engenharia de Software C, do cur
 
 ## Uso
 1. Abra o arquivo `index.html` no seu navegador para iniciar o aplicativo.
-2. Explore o mapa interativo para visualizar pontos de interesse e interagir com funcionalidades de geolocalização.
+2. Utilize o mapa interativo para encontrar restaurantes próximos e visualizar informações sobre os pratos mais baratos disponíveis.
 
 ## Contribuição
 - Contribuições são bem-vindas!
@@ -32,4 +32,6 @@ Este projeto foi elaborado para a disciplina de Engenharia de Software C, do cur
   5. Abra um Pull Request
 
 ## Licença
--
+Este projeto é licenciado sob a Licença MIT, que permite tanto o uso educativo quanto o comercial:
+- **Uso educativo**: Você pode modificar e distribuir cópias deste software para fins educativos.
+- **Uso comercial**: Você pode modificar e distribuir cópias deste software para fins comerciais.
