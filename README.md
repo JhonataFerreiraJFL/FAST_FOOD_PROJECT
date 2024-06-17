@@ -8,7 +8,6 @@ Entendi! Aqui está o README.md atualizado, considerando que o projeto utiliza H
 Este projeto foi elaborado para a disciplina de Engenharia de Software C, do curso de Engenharia de Computação da UERJ. O objetivo principal é desenvolver um sistema básico para fins de geolocalização, geosserviço e colaborativo para a comunidade, utilizando HTML, CSS, JavaScript com as ferramentas do Leaflet e OpenStreetMap.
 
 ## Funcionalidades
-- Cadastro e autenticação de usuários
 - Geolocalização de usuários e pontos de interesse
 - Compartilhamento de informações geográficas entre usuários
 - Recomendações de locais com base em preferências pessoais
