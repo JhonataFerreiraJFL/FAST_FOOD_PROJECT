@@ -1,7 +1,3 @@
-Entendi! Aqui está o README.md atualizado com uma licença que permite tanto o uso educativo quanto o comercial do projeto:
-
----
-
 # GeoService
 
 ## Descrição
